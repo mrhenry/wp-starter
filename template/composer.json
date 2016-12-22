@@ -1,0 +1,18 @@
+{
+	"extra": {
+		"wordpress-install-dir": "wp"
+	},
+	"repositories": [
+		{
+			"type": "composer",
+			"url": "https://wpackagist.org"
+		}
+	],
+	"require": {
+		"ext-gd": "*",
+		"johnpbloch/wordpress": "*",
+		"php": ">=7.0",
+		"wpackagist-plugin/timber-library": "*",
+		"wpackagist-plugin/wpro": "1.0"
+	}
+}

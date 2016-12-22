@@ -1,0 +1,192 @@
+#!/usr/bin/env bash
+
+echo -e "\n--> Checking local dependencies"
+
+# Check composer install
+if [[ -z "$(which composer)" ]]
+then
+	echo -e "\n--> Can't find the composer command."
+	echo -e "--> Make sure composer is installed correctly. "
+	echo -e "--> https://getcomposer.org/"
+
+	exit 1
+
+else
+	echo -e "\n--> Composer installed: OK"
+	echo -e "    $(which composer)"
+
+fi
+
+# Check MAMP install
+if [[ -z "$(ls /Applications | grep MAMP | head -1)" ]]
+then
+	echo -e "\n--> MAMP doesn't seem to be installed."
+
+	echo -e "--> Do you want to continue? (y)es or (n)o"
+	read MAMP_OK
+
+	if [[ "$MAMP_OK" != "y" ]]
+	then
+		exit 1
+	fi
+
+else
+	echo -e "\n--> MAMP installed: OK"
+	echo -e "    /Applications/MAMP"
+
+fi
+
+# Check PHP version
+if [[ ! "$(echo $PATH)" =~ "MAMP/bin/php" ]]
+then
+	echo -e "\n--> You are not using the MAMP PHP version"
+	echo -e "--> You can add this to your .bash_profile:"
+	echo -e "\n    PHP_VERSION=\`ls /Applications/MAMP/bin/php/ | sort -n | tail -1 | head -1\`"
+	echo -e "    export PATH=/Applications/MAMP/bin/php/\${PHP_VERSION}/bin:\$PATH"
+
+	echo -e "\n--> Do you want to continue? (y)es or (n)o"
+	read PHP_OK
+
+	if [[ "$PHP_OK" != "y" ]]
+	then
+		exit 1
+	fi
+
+else
+	echo -e "\n--> MAMP PHP installed: OK"
+	echo -e "    $(ls /Applications/MAMP/bin/php/ | sort -n | tail -1 | head -1)"
+
+fi
+
+# Ask & set project name & slug
+while [ "$SLUG_OK" != "y" ]
+do
+	echo -e "\n--> Give a project name"
+	echo -e "    (Full name, we create the slug based on this name)"
+	read PROJECT_NAME
+
+	PROJECT_SLUG=$(echo $PROJECT_NAME | tr '[:upper:]' '[:lower:]' | tr -d '[:space:][:punct:]')
+
+	echo -e "\n--> We'll be using following settings:"
+	echo -e "slug:      ${PROJECT_SLUG}"
+	echo -e "directory: wp_${PROJECT_SLUG}"
+
+	echo -e "\nOK? (y)es or (n)o"
+	read SLUG_OK
+done
+
+# Create project folder and go to that directory
+echo -e "\n--> Create project folder wp_${PROJECT_SLUG}"
+mkdir -p "./wp_${PROJECT_SLUG}"
+
+echo -e "--> Change directory to wp_${PROJECT_SLUG}"
+cd ./wp_${PROJECT_SLUG}
+pwd
+
+# Load template files
+if [[ "$PWD" =~ "wp-starter" ]];
+then
+	mkdir -p ./wp-starter-master
+	cp -Ri ../template ./wp-starter-master/template
+
+else
+	echo -e "--> Downloading wp-starter files\n"
+	curl -L https://github.com/mrhenry/wp-starter/archive/master.zip > wp-starter-master.zip
+
+	echo -e "--> Extract files\n"
+	unzip wp-starter-master.zip
+	rm wp-starter-master.zip
+
+fi
+
+echo -e "--> Copy template files"
+cp -Ri ./wp-starter-master/template/* ./
+cp -Ri ./wp-starter-master/template/.[^.]* ./
+
+# Replace variables in the templates files
+echo -e "--> Update README with project details"
+sed -i '' "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" ./README.md
+sed -i '' "s/{{PROJECT_SLUG}}/${PROJECT_SLUG}/g" ./README.md
+
+echo -e "--> Configure variables in wp-config.php"
+sed -i '' "s/{{PROJECT_SLUG}}/${PROJECT_SLUG}/g" ./wp-config.php
+
+echo -e "--> Add salt keys files to wp-config.php\n"
+curl https://api.wordpress.org/secret-key/1.1/salt/ > ./wp-starter-master/wp_salt_keys
+
+sed -i '' '/{{WP_SALT_KEYS}}/{
+	s/{{WP_SALT_KEYS}}//g
+	r ./wp-starter-master/wp_salt_keys
+}' ./wp-config.php
+
+echo -e "--> Configure variables in style.css"
+sed -i '' "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" ./wp-content/themes/PROJECT_SLUG/style.css
+
+echo -e "--> Rename theme folder to ${PROJECT_SLUG}"
+mv ./wp-content/themes/PROJECT_SLUG ./wp-content/themes/${PROJECT_SLUG}
+
+# Clean up
+echo -e "--> Clean up install files"
+rm -r ./wp-starter-master
+
+# Run composer
+echo -e "--> Run composer install"
+composer install
+
+# Initialize Git
+echo -e "\nInitialize GIT repo? (y)es or (n)o"
+read GIT_OK
+
+if [[ "${GIT_OK}" == "y" ]]
+then
+	git init
+	git add .
+	git commit -m "Bootstrapped application with wp-starter"
+fi
+
+# Initialize Heroku
+if [[ ! -z "$(which heroku)" ]]
+then
+	echo -e "\nDo you want to initialize Heroku apps for staging & production? (y)es or (n)o"
+	read HEROKU_OK
+
+	if [[ "${HEROKU_OK}" == "y" ]]
+	then
+		heroku create "${PROJECT_SLUG}-s"
+		heroku addons:create jawsdb:kitefin -a "${PROJECT_SLUG}-s"
+		heroku config:set ENV=staging
+		heroku domains:add "${PROJECT_SLUG}.s.a.mrhenry.eu"
+		git push heroku master
+		git remote remove heroku
+
+		echo -e "\n--> Heroku staging: OK"
+
+		heroku create "${PROJECT_SLUG}-p"
+		heroku addons:create jawsdb:kitefin -a "${PROJECT_SLUG}-p"
+		heroku config:set ENV=production
+		heroku domains:add "${PROJECT_SLUG}.p.a.mrhenry.eu"
+		git push heroku master
+		git remote remove heroku
+
+		echo -e "\n--> Heroku production: OK"
+	fi
+fi
+
+# The end
+echo -e "\n**************************************************"
+echo -e "\n--> That's it! Happy developing :)"
+
+echo -e "\nStaging URL:    http://${PROJECT_SLUG}.s.a.mrhenry.eu"
+echo -e "Production URL: http://${PROJECT_SLUG}.p.a.mrhenry.eu"
+
+echo -e "\n--> Things to configure manually:\n"
+echo -e "1. Install Wordpress on production and export DB"
+echo -e "2. Create S3 bucket and add keys to production app via admin panel:"
+echo -e "  http://${PROJECT_SLUG}.p.a.mrhenry.eu/wp/wp-admin/options-general.php?page=wpro"
+echo -e "3. Create development database:"
+echo -e "   wp_${PROJECT_SLUG}_development"
+echo -e "4. Import production DB in development & staging"
+echo -e "5. Add admin credentials to 1Password"
+echo -e "6. Add plugin: Advanced Custom Fields Pro"
+echo -e "7. Configure Wercker"
+echo -e "8. Install gulp-starter"
