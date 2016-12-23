@@ -93,7 +93,7 @@ cd ./wp_${PROJECT_SLUG}
 pwd
 
 # Load template files
-if [[ "$PWD" =~ "wp-starters" ]]
+if [[ "$PWD" =~ "wp-starter" ]]
 then
 	mkdir -p ./wp-starter-master
 	cp -Ri ../template ./wp-starter-master/template
