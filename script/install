@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+cat << EOF
+                            __             __
+ _      ______        _____/ /_____ ______/ /____  _____
+| | /| / / __ \______/ ___/ __/ __ `/ ___/ __/ _ \/ ___/
+| |/ |/ / /_/ /_____(__  ) /_/ /_/ / /  / /_/  __/ /
+|__/|__/ .___/     /____/\__/\__,_/_/   \__/\___/_/
+      /_/
+EOF
+
 echo -e "\n--> Checking local dependencies"
 
 # Check composer install
@@ -84,7 +93,7 @@ cd ./wp_${PROJECT_SLUG}
 pwd
 
 # Load template files
-if [[ "$PWD" =~ "wp-starter" ]];
+if [[ "$PWD" =~ "wp-starters" ]]
 then
 	mkdir -p ./wp-starter-master
 	cp -Ri ../template ./wp-starter-master/template
