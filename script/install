@@ -114,22 +114,22 @@ cp -Ri ./wp-starter-master/template/.[^.]* ./
 
 # Replace variables in the templates files
 echo -e "--> Update README with project details"
-sed -i '' "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" ./README.md
-sed -i '' "s/{{PROJECT_SLUG}}/${PROJECT_SLUG}/g" ./README.md
+sed -i '' "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./README.md
+sed -i '' "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" ./README.md
 
 echo -e "--> Configure variables in wp-config.php"
-sed -i '' "s/{{PROJECT_SLUG}}/${PROJECT_SLUG}/g" ./wp-config.php
+sed -i '' "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" wp-config.php
 
 echo -e "--> Add salt keys files to wp-config.php\n"
-curl https://api.wordpress.org/secret-key/1.1/salt/ > ./wp-starter-master/wp_salt_keys
+curl https://api.wordpress.org/secret-key/1.1/salt/ > wp-starter-master/wp_salt_keys
 
-sed -i '' '/{{WP_SALT_KEYS}}/{
+sed -i '' "/{{WP_SALT_KEYS}}/{
 	s/{{WP_SALT_KEYS}}//g
 	r ./wp-starter-master/wp_salt_keys
-}' ./wp-config.php
+}" wp-config.php
 
 echo -e "--> Configure variables in style.css"
-sed -i '' "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" ./wp-content/themes/PROJECT_SLUG/style.css
+sed -i '' "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./wp-content/themes/PROJECT_SLUG/style.css
 
 echo -e "--> Rename theme folder to ${PROJECT_SLUG}"
 mv ./wp-content/themes/PROJECT_SLUG ./wp-content/themes/${PROJECT_SLUG}
