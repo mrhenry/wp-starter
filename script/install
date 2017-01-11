@@ -177,7 +177,7 @@ then
 		heroku domains:add "${PROJECT_SLUG}.p.a.mrhenry.eu"
 		git push heroku master
 		git remote remove heroku
-		heroku git:remote -a "${PROJECT_SLUG}-s" -r production
+		heroku git:remote -a "${PROJECT_SLUG}-p" -r production
 
 		echo -e "\n--> Heroku production: OK"
 	fi
