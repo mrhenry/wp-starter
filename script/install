@@ -161,7 +161,12 @@ then
 
 	if [[ "${HEROKU_OK}" == "y" ]]
 	then
-		heroku create "${PROJECT_SLUG}-s"
+		if [[ ! -z "$(which hk-create)" ]]
+		then
+			hk-create "${PROJECT_SLUG}-s"
+		else
+			heroku create "${PROJECT_SLUG}-s"
+		fi
 		heroku addons:create jawsdb:kitefin -a "${PROJECT_SLUG}-s"
 		heroku config:set ENV=staging
 		heroku domains:add "${PROJECT_SLUG}.s.a.mrhenry.eu"
@@ -170,7 +175,12 @@ then
 
 		echo -e "\n--> Heroku staging: OK"
 
-		heroku create "${PROJECT_SLUG}-p"
+		if [[ ! -z "$(which hk-create)" ]]
+		then
+			hk-create "${PROJECT_SLUG}-p"
+		else
+			heroku create "${PROJECT_SLUG}-p"
+		fi
 		heroku addons:create jawsdb:kitefin -a "${PROJECT_SLUG}-p"
 		heroku config:set ENV=production
 		heroku domains:add "${PROJECT_SLUG}.p.a.mrhenry.eu"
