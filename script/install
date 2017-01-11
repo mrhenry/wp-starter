@@ -92,11 +92,15 @@ echo -e "--> Change directory to wp_${PROJECT_SLUG}"
 cd ./wp_${PROJECT_SLUG}
 pwd
 
+TEST=0
+
 # Load template files
 if [[ "$PWD" =~ "wp-starter" ]]
 then
 	mkdir -p ./wp-starter-master
 	cp -Ri ../template ./wp-starter-master/template
+
+	TEST=1
 
 else
 	echo -e "--> Downloading wp-starter files\n"
@@ -114,22 +118,48 @@ cp -Ri ./wp-starter-master/template/.[^.]* ./
 
 # Replace variables in the templates files
 echo -e "--> Update README with project details"
-sed -i '' "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./README.md
-sed -i '' "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" ./README.md
+if [[ $TEST == 1 ]]
+then
+	echo "\nTESTING VERSION\n"
+	sed -i '' "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./README.md
+	sed -i '' "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" ./README.md
+else
+	echo "\nNON-TESTING VERSION\n"
+	sed -i "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./README.md
+	sed -i "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" ./README.md
+fi
 
 echo -e "--> Configure variables in wp-config.php"
-sed -i '' "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" wp-config.php
+if [[ $TEST == 1 ]]
+then
+	sed -i '' "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" wp-config.php
+else
+	sed -i "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" wp-config.php
+fi
 
 echo -e "--> Add salt keys files to wp-config.php\n"
 curl https://api.wordpress.org/secret-key/1.1/salt/ > wp-starter-master/wp_salt_keys
 
-sed -i '' "/{{WP_SALT_KEYS}}/{
-	s/{{WP_SALT_KEYS}}//g
-	r ./wp-starter-master/wp_salt_keys
-}" wp-config.php
+if [[ $TEST == 1 ]]
+then
+	sed -i "/{{WP_SALT_KEYS}}/{
+		s/{{WP_SALT_KEYS}}//g
+		r ./wp-starter-master/wp_salt_keys
+	}" wp-config.php
+else
+	sed -i "/{{WP_SALT_KEYS}}/{
+		s/{{WP_SALT_KEYS}}//g
+		r ./wp-starter-master/wp_salt_keys
+	}" wp-config.php
+fi
 
 echo -e "--> Configure variables in style.css"
-sed -i '' "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./wp-content/themes/PROJECT_SLUG/style.css
+if [[ $TEST == 1 ]]
+then
+	sed -i '' "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./wp-content/themes/PROJECT_SLUG/style.css
+else
+	sed -i "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./wp-content/themes/PROJECT_SLUG/style.css
+fi
 
 echo -e "--> Rename theme folder to ${PROJECT_SLUG}"
 mv ./wp-content/themes/PROJECT_SLUG ./wp-content/themes/${PROJECT_SLUG}
@@ -161,12 +191,23 @@ then
 
 	if [[ "${HEROKU_OK}" == "y" ]]
 	then
+		SUPPORTS_HK_CREATE=0
+
 		if [[ ! -z "$(which hk-create)" ]]
 		then
-			hk-create "${PROJECT_SLUG}-s"
+			if [[ ! -f ~/.hk-create-config.hcl ]]
+			then
+				SUPPORTS_HK_CREATE=1
+			fi
+		fi
+
+		if [[ $SUPPORTS_HK_CREATE == 1 ]]
+		then
+			hk-create --config=~/.hk-create-config.hcl "${PROJECT_SLUG}-s"
 		else
 			heroku create "${PROJECT_SLUG}-s"
 		fi
+
 		heroku addons:create jawsdb:kitefin -a "${PROJECT_SLUG}-s"
 		heroku config:set ENV=staging
 		heroku domains:add "${PROJECT_SLUG}.s.a.mrhenry.eu"
@@ -176,9 +217,9 @@ then
 
 		echo -e "\n--> Heroku staging: OK"
 
-		if [[ ! -z "$(which hk-create)" ]]
+		if [[ $SUPPORTS_HK_CREATE == 1 ]]
 		then
-			hk-create "${PROJECT_SLUG}-p"
+			hk-create --config=~/.hk-create-config.hcl "${PROJECT_SLUG}-p"
 		else
 			heroku create "${PROJECT_SLUG}-p"
 		fi
