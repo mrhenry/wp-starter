@@ -120,11 +120,9 @@ cp -Ri ./wp-starter-master/template/.[^.]* ./
 echo -e "--> Update README with project details"
 if [[ $TEST == 1 ]]
 then
-	echo "\nTESTING VERSION\n"
 	sed -i '' "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./README.md
 	sed -i '' "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" ./README.md
 else
-	echo "\nNON-TESTING VERSION\n"
 	sed -i "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./README.md
 	sed -i "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" ./README.md
 fi
@@ -195,7 +193,7 @@ then
 
 		if [[ ! -z "$(which hk-create)" ]]
 		then
-			if [[ ! -f ~/.hk-create-config.hcl ]]
+			if [[ -f ~/.hk-create-config.hcl ]]
 			then
 				SUPPORTS_HK_CREATE=1
 			fi
