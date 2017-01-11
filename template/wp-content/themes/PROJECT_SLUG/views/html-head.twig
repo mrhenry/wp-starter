@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="">
+<html lang="en">
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="x-ua-compatible" content="ie=edge,chrome=1">
@@ -12,10 +12,31 @@
 				{{ site.name }}
 			{% endif %}
 		</title>
+
 		<meta name="description" content="{{ site.description }}">
 
-		<!--<link rel="dns-prefetch" href="//lennyleleu.imgix.net">-->
-		<link rel="pingback" href="{{ site.pingback_url }}" />
+		<link rel="icon" href="{{ theme.path }}/favicon.ico" type="image/x-icon">
+
+		<link rel="stylesheet" href="{{ theme.path }}/public/assets/css/application.min.css" />
+
+		<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es5,es6,es7&flags=gated&version=latest&unknown=ignore" defer></script>
+
+		<script>
+			// Mustard Cutting.
+			// Bye, bye, IE9 & 10
+			if (('MutationObserver' in window)) {
+				// If we support native Custom Elements (v1)
+				// we assume decent ES2015 support & load in the Rollup bundle
+				if ('customElements' in window) {
+					document.write('<script src="{{ theme.path }}/public/assets/js/app.es6.min.js" defer><\/script>');
+
+				// Else, we load a fallback & run the transpiled bundle from Babel
+				} else {
+					document.write('<script src="{{ theme.path }}/public/assets/js/custom-elements.js" defer><\/script>');
+					document.write('<script src="{{ theme.path }}/public/assets/js/app.min.js" defer><\/script>');
+				}
+			}
+		</script>
 
 		{{ function('wp_head') }}
 	</head>

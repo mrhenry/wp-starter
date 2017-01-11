@@ -2,18 +2,9 @@
 	{% include "html-head.twig" %}
 {% endblock %}
 
-<body>
-	<!--[if lte IE 9]>
-		<p style="background-color: rgb(255,65,45); color: white; font-size: 12px; margin: 0; padding: 7px; text-align: center;">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
-	<![endif]-->
+{% block content %}
+{% endblock %}
 
-	{% block content %}
-	{% endblock %}
-
-
-	{% block html_foot_container %}
-		{% include "html-foot.twig" %}
-	{% endblock %}
-
-</body>
-</html>
+{% block html_foot_container %}
+	{% include "html-foot.twig" %}
+{% endblock %}
