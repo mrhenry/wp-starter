@@ -201,32 +201,32 @@ then
 
 		if [[ $SUPPORTS_HK_CREATE == 1 ]]
 		then
-			hk-create --config=~/.hk-create-config.hcl "${PROJECT_SLUG}-s"
+			hk-create --config ~/.hk-create-config.hcl "${PROJECT_SLUG}-s"
 		else
 			heroku create "${PROJECT_SLUG}-s"
 		fi
 
 		heroku addons:create jawsdb:kitefin -a "${PROJECT_SLUG}-s"
-		heroku config:set ENV=staging
-		heroku domains:add "${PROJECT_SLUG}.s.a.mrhenry.eu"
-		git push heroku master
-		git remote remove heroku
+		heroku config:set ENV=staging -a "${PROJECT_SLUG}-s"
+		heroku domains:add "${PROJECT_SLUG}.s.a.mrhenry.eu" -a "${PROJECT_SLUG}-s"
 		heroku git:remote -a "${PROJECT_SLUG}-s" -r staging
+		git push staging master
+		git remote remove heroku
 
 		echo -e "\n--> Heroku staging: OK"
 
 		if [[ $SUPPORTS_HK_CREATE == 1 ]]
 		then
-			hk-create --config=~/.hk-create-config.hcl "${PROJECT_SLUG}-p"
+			hk-create --config ~/.hk-create-config.hcl "${PROJECT_SLUG}-p"
 		else
 			heroku create "${PROJECT_SLUG}-p"
 		fi
 		heroku addons:create jawsdb:kitefin -a "${PROJECT_SLUG}-p"
-		heroku config:set ENV=production
-		heroku domains:add "${PROJECT_SLUG}.p.a.mrhenry.eu"
-		git push heroku master
-		git remote remove heroku
+		heroku config:set ENV=production -a "${PROJECT_SLUG}-p"
+		heroku domains:add "${PROJECT_SLUG}.p.a.mrhenry.eu" -a "${PROJECT_SLUG}-p"
 		heroku git:remote -a "${PROJECT_SLUG}-p" -r production
+		git push production master
+		git remote remove heroku
 
 		echo -e "\n--> Heroku production: OK"
 	fi
