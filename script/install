@@ -100,8 +100,6 @@ then
 	mkdir -p ./wp-starter-master
 	cp -Ri ../template ./wp-starter-master/template
 
-	TEST=1
-
 else
 	echo -e "--> Downloading wp-starter files\n"
 	curl -L https://github.com/mrhenry/wp-starter/archive/master.zip > wp-starter-master.zip
@@ -118,46 +116,22 @@ cp -Ri ./wp-starter-master/template/.[^.]* ./
 
 # Replace variables in the templates files
 echo -e "--> Update README with project details"
-if [[ $TEST == 1 ]]
-then
-	sed -i '' "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./README.md
-	sed -i '' "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" ./README.md
-else
-	sed -i "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./README.md
-	sed -i "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" ./README.md
-fi
+sed -i -e "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./README.md
+sed -i -e "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" ./README.md
 
 echo -e "--> Configure variables in wp-config.php"
-if [[ $TEST == 1 ]]
-then
-	sed -i '' "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" wp-config.php
-else
-	sed -i "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" wp-config.php
-fi
+sed -i -e "s:{{PROJECT_SLUG}}:${PROJECT_SLUG}:g" wp-config.php
 
 echo -e "--> Add salt keys files to wp-config.php\n"
 curl https://api.wordpress.org/secret-key/1.1/salt/ > wp-starter-master/wp_salt_keys
 
-if [[ $TEST == 1 ]]
-then
-	sed -i "/{{WP_SALT_KEYS}}/{
-		s/{{WP_SALT_KEYS}}//g
-		r ./wp-starter-master/wp_salt_keys
-	}" wp-config.php
-else
-	sed -i "/{{WP_SALT_KEYS}}/{
-		s/{{WP_SALT_KEYS}}//g
-		r ./wp-starter-master/wp_salt_keys
-	}" wp-config.php
-fi
+sed -i -e "/{{WP_SALT_KEYS}}/{
+	s/{{WP_SALT_KEYS}}//g
+	r ./wp-starter-master/wp_salt_keys
+}" wp-config.php
 
 echo -e "--> Configure variables in style.css"
-if [[ $TEST == 1 ]]
-then
-	sed -i '' "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./wp-content/themes/PROJECT_SLUG/style.css
-else
-	sed -i "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./wp-content/themes/PROJECT_SLUG/style.css
-fi
+sed -i -e "s:{{PROJECT_NAME}}:${PROJECT_NAME}:g" ./wp-content/themes/PROJECT_SLUG/style.css
 
 echo -e "--> Rename theme folder to ${PROJECT_SLUG}"
 mv ./wp-content/themes/PROJECT_SLUG ./wp-content/themes/${PROJECT_SLUG}
